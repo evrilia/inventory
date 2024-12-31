@@ -10,6 +10,8 @@ import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.Component;
+
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -23,6 +25,9 @@ import java.sql.*;
  * @author Evrilia Elsyabila
  */
 public class Inventory extends javax.swing.JFrame {
+    private String selectedImagePath;
+    private static final String IMAGE_DIRECTORY = "src/images/";
+
 
     /**
      * Creates new form Inventory
@@ -149,6 +154,41 @@ public class Inventory extends javax.swing.JFrame {
             }
         });
 
+        tblBarang.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int selectedRow = tblBarang.getSelectedRow();
+                if (selectedRow >= 0) { 
+                    displaySelectedRowData(selectedRow);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Pilih baris yang valid!", "Error", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
+
+        tblBarang.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                if (value instanceof ImageIcon) {
+                    JLabel lbl = new JLabel();
+                    lbl.setHorizontalAlignment(JLabel.CENTER);
+                    lbl.setVerticalAlignment(JLabel.CENTER);
+                    
+                    ImageIcon icon = (ImageIcon) value;
+                    Image img = icon.getImage();
+                    
+                    Image scaledImg = img.getScaledInstance(img.getWidth(null) / 2, img.getHeight(null) / 2, Image.SCALE_SMOOTH);
+                    lbl.setIcon(new ImageIcon(scaledImg));
+                    
+                    return lbl;
+                }
+                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            }
+        });
+
+        tblBarang.setRowHeight(100);
+        tblBarang.getColumnModel().getColumn(8).setPreferredWidth(100);
+
         jLabel9.setForeground(new java.awt.Color(0, 0, 0));
         jLabel9.setText("ID Barang");
 
@@ -159,7 +199,7 @@ public class Inventory extends javax.swing.JFrame {
         jLabel8.setForeground(new java.awt.Color(0, 0, 0));
         jLabel8.setText("Tipe");
 
-        boxTipe.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Elektronik", "Non Elektronik", " " }));
+        boxTipe.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Elektronik", "Non Elektronik"}));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -296,8 +336,6 @@ public class Inventory extends javax.swing.JFrame {
             if (gambar == null) {
                 throw new Exception("Gambar tidak boleh kosong!");
             }
-            String imagePath = "path/to/image.png"; // Simpan path gambar
-
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
@@ -310,7 +348,7 @@ public class Inventory extends javax.swing.JFrame {
             pstBarang.setDouble(5, hargaBeli);
             pstBarang.setDouble(6, hargaJual);
             pstBarang.setInt(7, jumlahStok);
-            pstBarang.setString(8, imagePath);
+            pstBarang.setString(8, selectedImagePath != null ? selectedImagePath : "path/to/image.png");
             pstBarang.executeUpdate();
 
             if (tipe.equals("Elektronik")) {
@@ -326,7 +364,7 @@ public class Inventory extends javax.swing.JFrame {
             lblKeterangan.setForeground(Color.BLACK);
 
             DefaultTableModel data = (DefaultTableModel) tblBarang.getModel();
-            data.addRow(new Object[]{idBarang, tipe, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, imagePath});
+            data.addRow(new Object[]{idBarang, tipe, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, selectedImagePath}); 
 
             clearFields();
         } catch (Exception e) {
@@ -346,7 +384,7 @@ public class Inventory extends javax.swing.JFrame {
                 throw new Exception("Pilih baris yang ingin diubah!");
             }
 
-            String idBarang = txtID.getText();
+            String idBarang = txtID.getText();         
             String namaBarang = txtNama.getText();
             String merk = txtMerk.getText();
             String garansi = txtGaransi.getText();
@@ -359,8 +397,6 @@ public class Inventory extends javax.swing.JFrame {
             if (gambar == null) {
                 throw new Exception("Gambar tidak boleh kosong!");
             }
-            String imagePath = "path/to/image.png"; // Update with the correct image path
-
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
@@ -372,7 +408,7 @@ public class Inventory extends javax.swing.JFrame {
             pst.setDouble(4, hargaBeli);
             pst.setDouble(5, hargaJual);
             pst.setInt(6, jumlahStok);
-            pst.setString(7, imagePath);
+            pst.setString(7, selectedImagePath != null ? selectedImagePath : "path/to/image.png");
             pst.setString(8, idBarang);
             pst.executeUpdate();
 
@@ -389,7 +425,7 @@ public class Inventory extends javax.swing.JFrame {
             lblKeterangan.setText("Data Berhasil diubah!");
             lblKeterangan.setForeground(Color.BLACK);
 
-            updateTable(selectedRow, idBarang, tipe, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, imagePath);
+            updateTable(selectedRow, idBarang, tipe, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, selectedImagePath);
         } catch (Exception e) {
             handleException(conn, e);
         } finally {
@@ -438,19 +474,23 @@ public class Inventory extends javax.swing.JFrame {
     private void btnUnggahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUnggahActionPerformed
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Pilih Gambar");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Gambar", "jpg", "jpeg", "png"));
 
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Gambar", "jpg", "jpeg", "png", "gif");
-        fileChooser.setFileFilter(filter);
-
-        int returnValue = fileChooser.showOpenDialog(this);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            String imagePath = selectedFile.getAbsolutePath(); // Store the image path
+            try {
+                File destination = new File(IMAGE_DIRECTORY, selectedFile.getName());
+                java.nio.file.Files.copy(selectedFile.toPath(), destination.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                selectedImagePath = destination.getAbsolutePath();
 
-            ImageIcon imageIcon = new ImageIcon(imagePath);
-            Image image = imageIcon.getImage();
-            Image resizedImage = image.getScaledInstance(lblGambar.getWidth(), lblGambar.getHeight(), Image.SCALE_SMOOTH);
-            lblGambar.setIcon(new ImageIcon(resizedImage));
+                ImageIcon imageIcon = new ImageIcon(selectedImagePath);
+                Image image = imageIcon.getImage().getScaledInstance(lblGambar.getWidth(), lblGambar.getHeight(), Image.SCALE_SMOOTH);
+                lblGambar.setIcon(new ImageIcon(image));
+
+                JOptionPane.showMessageDialog(this, "Gambar berhasil diunggah!", "Informasi", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error menyimpan gambar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }//GEN-LAST:event_btnUnggahActionPerformed
 
@@ -531,27 +571,101 @@ public class Inventory extends javax.swing.JFrame {
 
     private void loadData() {
         DefaultTableModel model = (DefaultTableModel) tblBarang.getModel();
-        model.setRowCount(0);  // Clear existing data
+        model.setRowCount(0);
 
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT b.id_barang, e.tipe, b.nama_barang, b.merk, b.garansi, b.jumlah_stok, b.harga_beli, b.harga_jual, b.gambar FROM barang b LEFT JOIN elektronik e ON b.id_barang = e.id_barang")) {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(
+                    "SELECT b.id_barang, COALESCE(e.tipe, 'non elektronik') AS tipe, " +
+                    "b.nama_barang, b.merk, b.garansi, b.jumlah_stok, b.harga_beli, b.harga_jual, b.gambar " +
+                    "FROM barang b LEFT JOIN elektronik e ON b.id_barang = e.id_barang")) {
 
             while (rs.next()) {
+                String idBarang = rs.getString("id_barang");
+                String tipe = rs.getString("tipe");
+                String namaBarang = rs.getString("nama_barang");
+                String merk = rs.getString("merk");
+                String garansi = rs.getString("garansi");
+                int jumlahStok = rs.getInt("jumlah_stok");
+                double hargaBeli = rs.getDouble("harga_beli");
+                double hargaJual = rs.getDouble("harga_jual");
+                String imagePath = rs.getString("gambar");
+
+                ImageIcon icon = null;
+                if (imagePath != null && !imagePath.isEmpty() && new File(imagePath).exists()) {
+                    ImageIcon originalIcon = new ImageIcon(imagePath);
+                    Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                    icon = new ImageIcon(scaledImage);
+                }
+
+                Barang barang;
+                if ("non elektronik".equalsIgnoreCase(tipe)) {
+                    barang = new Barang(idBarang, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, icon);
+                } else {
+                    barang = new Elektronik(idBarang, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, icon, tipe);
+                }
+
                 model.addRow(new Object[]{
-                    rs.getString("id_barang"),
-                    rs.getString("tipe"),
-                    rs.getString("nama_barang"),
-                    rs.getString("merk"),
-                    rs.getString("garansi"),
-                    rs.getInt("jumlah_stok"),
-                    rs.getDouble("harga_beli"),
-                    rs.getDouble("harga_jual"),
-                    rs.getString("gambar")
+                        barang.getIdBarang(),
+                        barang instanceof Elektronik ? ((Elektronik) barang).getTipe() : "Non Elektronik",
+                        barang.getNamaBarang(),
+                        barang.getMerk(),
+                        barang.getGaransi(),
+                        barang.getJumlahStok(),
+                        barang.getHargaBeli(),
+                        barang.getHargaJual(),
+                        icon != null ? icon : "Gambar Tidak Tersedia"
                 });
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error loading data from database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException | ValidasiInputException e) {
+            JOptionPane.showMessageDialog(this, "Error memuat data dari database: " + e.getMessage(),
+                    "Kesalahan Database", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private void displaySelectedRowData(int selectedRow) {
+        try {
+            DefaultTableModel model = (DefaultTableModel) tblBarang.getModel();
+
+            if (selectedRow < 0 || selectedRow >= model.getRowCount()) {
+                throw new IllegalArgumentException("Baris yang dipilih tidak valid.");
+            }
+
+            // Tampilkan data teks
+            txtID.setText(model.getValueAt(selectedRow, 0).toString());
+            txtNama.setText(model.getValueAt(selectedRow, 2).toString());
+            txtMerk.setText(model.getValueAt(selectedRow, 3).toString());
+            txtGaransi.setText(model.getValueAt(selectedRow, 4).toString());
+            txtStok.setText(String.valueOf(model.getValueAt(selectedRow, 5)));
+            txtBeli.setText(String.valueOf(model.getValueAt(selectedRow, 6)));
+            txtJual.setText(String.valueOf(model.getValueAt(selectedRow, 7)));
+
+            // Tampilkan gambar
+            Object imageObject = model.getValueAt(selectedRow, 8);
+            if (imageObject instanceof String) {
+                String imagePath = (String) imageObject;
+                if (new File(imagePath).exists()) {
+                    ImageIcon originalIcon = new ImageIcon(imagePath);
+                    Image scaledImage = originalIcon.getImage().getScaledInstance(
+                            lblGambar.getWidth(), lblGambar.getHeight(), Image.SCALE_SMOOTH);
+                    lblGambar.setIcon(new ImageIcon(scaledImage));
+                } else {
+                    lblGambar.setIcon(null);
+                    JOptionPane.showMessageDialog(this, "Gambar tidak ditemukan di path: " + imagePath,
+                            "Peringatan", JOptionPane.WARNING_MESSAGE);
+                }
+            } else if (imageObject instanceof ImageIcon) {
+                ImageIcon originalIcon = (ImageIcon) imageObject;
+                Image scaledImage = originalIcon.getImage().getScaledInstance(
+                        lblGambar.getWidth(), lblGambar.getHeight(), Image.SCALE_SMOOTH);
+                lblGambar.setIcon(new ImageIcon(scaledImage));
+            } else {
+                lblGambar.setIcon(null);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error menampilkan data: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -576,7 +690,21 @@ public class Inventory extends javax.swing.JFrame {
         data.setValueAt(jumlahStok, selectedRow, 5);
         data.setValueAt(hargaBeli, selectedRow, 6);
         data.setValueAt(hargaJual, selectedRow, 7);
-        data.setValueAt(imagePath, selectedRow, 8);
+
+        if (imagePath != null && !imagePath.isEmpty()) {
+            int columnWidth = tblBarang.getColumnModel().getColumn(8).getWidth();
+            int rowHeight = tblBarang.getRowHeight();
+
+            // Ambil gambar dari path
+            Image img = new ImageIcon(imagePath).getImage();
+
+            // Skalakan gambar agar sesuai dengan ukuran sel tabel
+            Image scaledImg = img.getScaledInstance(columnWidth, rowHeight, Image.SCALE_SMOOTH);
+
+            // Perbarui gambar di tabel
+            ImageIcon icon = new ImageIcon(scaledImg);
+            data.setValueAt(icon, selectedRow, 8);
+        }
     }
 
     private void handleException(Connection conn, Exception e) {
@@ -602,7 +730,5 @@ public class Inventory extends javax.swing.JFrame {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
-        java.awt.EventQueue.invokeLater(() -> new Inventory().setVisible(true));
     }
 }

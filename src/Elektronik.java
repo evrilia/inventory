@@ -26,4 +26,16 @@ public class Elektronik extends Barang {
     public String getTipe() {
         return tipe;
     }
+    
+    // override
+    public String tampilnfo() {
+        return "ID Barang: " + idBarang + "\n" +
+                "Nama Barang: " + namaBarang + "\n" +
+                "Merk: " + merk + "\n" +
+                "Garansi: " + garansi + "\n" +
+                "Jumlah Stok: " + jumlahStok + "\n" +
+                "Harga Beli: " + hargaBeli + "\n" +
+                "Harga Jual: " + hargaJual + "\n" +
+                "Tipe: " + tipe + "\n";
+    }
 }

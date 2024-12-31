@@ -19,9 +19,7 @@ public class Barang {
     protected double hargaBeli;
     protected double hargaJual;
     protected ImageIcon gambar;
-    protected String tipeElektronik;
 
-    // Constructor dengan validasi input
     public Barang(String idBarang, String namaBarang, String merk, String garansi, int jumlahStok, double hargaBeli, double hargaJual, ImageIcon gambar) throws ValidasiInputException {
         if (idBarang.isEmpty()) {
             throw new ValidasiInputException("ID Barang tidak boleh kosong!");
@@ -53,43 +51,51 @@ public class Barang {
         this.hargaBeli = hargaBeli;
         this.hargaJual = hargaJual;
         this.gambar = gambar;
-        this.tipeElektronik = tipeElektronik;
     }
 
-    // Getter methods
-    public String idBarang() {
+    public String getIdBarang() {
         return idBarang;
     }
 
-    public String namaBarang() {
+    public String getNamaBarang() {
         return namaBarang;
     }
 
-    public String merk() {
+    public String getMerk() {
         return merk;
     }
 
-    public String garansi() {
+    public String getGaransi() {
         return garansi;
     }
 
-    public int jumlahStok() {
+    public int getJumlahStok() {
         return jumlahStok;
     }
 
-    public double hargaBeli() {
+    public double getHargaBeli() {
         return hargaBeli;
     }
 
-    public double hargaJual() {
+    public double getHargaJual() {
         return hargaJual;
     }
 
-    public ImageIcon gambar() {
+    public ImageIcon getGambar() {
         return gambar;
     }
-    
-    public String tipeElektronik() {
-        return tipeElektronik;
+
+    // Method displayDetails
+    public String tampilInfo() {
+        return "Barang{" +
+            "idBarang='" + idBarang + '\'' +
+            ", namaBarang='" + namaBarang + '\'' +
+            ", merk='" + merk + '\'' +
+            ", garansi='" + garansi + '\'' +
+            ", jumlahStok=" + jumlahStok +
+            ", hargaBeli=" + hargaBeli +
+            ", hargaJual=" + hargaJual +
+            ", gambar=" + gambar +
+            '}';
     }
 }
