@@ -18,7 +18,6 @@ import java.awt.Component;
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 
-
 import java.sql.*;
 /**
  *
@@ -78,7 +77,7 @@ public class Inventory extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBackground(new java.awt.Color(30, 206, 246));
+        jPanel1.setBackground(new java.awt.Color(184,207,234));
 
         jLabel1.setForeground(new java.awt.Color(0, 0, 0));
         jLabel1.setText("Nama Barang");
@@ -336,9 +335,14 @@ public class Inventory extends javax.swing.JFrame {
             if (gambar == null) {
                 throw new Exception("Gambar tidak boleh kosong!");
             }
+
+            // Mengambil path gambar
+            String pathGambar = selectedImagePath != null ? selectedImagePath : "path/to/image.png";
+
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
+            // Menyimpan data barang ke database
             String sqlBarang = "INSERT INTO barang (id_barang, nama_barang, merk, garansi, harga_beli, harga_jual, jumlah_stok, gambar) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             pstBarang = conn.prepareStatement(sqlBarang);
             pstBarang.setString(1, idBarang);
@@ -348,9 +352,10 @@ public class Inventory extends javax.swing.JFrame {
             pstBarang.setDouble(5, hargaBeli);
             pstBarang.setDouble(6, hargaJual);
             pstBarang.setInt(7, jumlahStok);
-            pstBarang.setString(8, selectedImagePath != null ? selectedImagePath : "path/to/image.png");
+            pstBarang.setString(8, pathGambar);
             pstBarang.executeUpdate();
 
+            // Jika barang tipe elektronik, masukkan ke tabel elektronik
             if (tipe.equals("Elektronik")) {
                 String sqlElektronik = "INSERT INTO elektronik (id_barang, tipe) VALUES (?, ?)";
                 pstElektronik = conn.prepareStatement(sqlElektronik);
@@ -363,8 +368,10 @@ public class Inventory extends javax.swing.JFrame {
             lblKeterangan.setText("Data berhasil disimpan ke database!");
             lblKeterangan.setForeground(Color.BLACK);
 
+            // Menambahkan data ke tabel (dengan gambar)
             DefaultTableModel data = (DefaultTableModel) tblBarang.getModel();
-            data.addRow(new Object[]{idBarang, tipe, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, selectedImagePath}); 
+            ImageIcon resizedImage = new ImageIcon(new ImageIcon(pathGambar).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH));
+            data.addRow(new Object[]{idBarang, tipe, namaBarang, merk, garansi, jumlahStok, hargaBeli, hargaJual, resizedImage});
 
             clearFields();
         } catch (Exception e) {
@@ -557,6 +564,7 @@ public class Inventory extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lblGambar;
     private javax.swing.JLabel lblKeterangan;
     private javax.swing.JTable tblBarang;
